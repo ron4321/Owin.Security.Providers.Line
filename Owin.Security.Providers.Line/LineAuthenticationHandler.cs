@@ -95,7 +95,6 @@ namespace Owin.Security.Providers.Line
                     user = (JObject)profile;
                 }
 
-                // ‚±‚Ì•Ó®‚¦‚é•K—v‚ ‚è
                 var context = new LineAuthenticatedContext(Context, user, accessToken)
                 {
                     Identity = new ClaimsIdentity(
