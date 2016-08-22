@@ -4,6 +4,7 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
+using Owin.Security.Providers.Line;
 using Owin;
 using SampleApplication.Models;
 
@@ -63,6 +64,10 @@ namespace SampleApplication
             //    ClientId = "",
             //    ClientSecret = ""
             //});
+
+            var id = "channelId";
+            var secret = "channelSecret";
+            app.UseLineAuthentication(channelId: id, channelSecret: secret);
         }
     }
 }
