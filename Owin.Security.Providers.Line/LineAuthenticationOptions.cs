@@ -4,6 +4,7 @@ using System.Net.Http;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Owin.Security.Providers.Line.Provider;
+using Microsoft.Owin.Infrastructure;
 
 namespace Owin.Security.Providers.Line
 {
@@ -85,6 +86,11 @@ namespace Owin.Security.Providers.Line
         public ISecureDataFormat<AuthenticationProperties> StateDataFormat { get; set; }
 
         /// <summary>
+        /// An abstraction for reading and setting cookies during the authentication process.
+        /// </summary>
+        public ICookieManager CookieManager { get; set; }
+
+        /// <summary>
         ///     Initializes a new <see cref="LineAuthenticationOptions" />
         /// </summary>
         public LineAuthenticationOptions()
@@ -93,11 +99,9 @@ namespace Owin.Security.Providers.Line
             Caption = Constants.DefaultAuthenticationType;
             CallbackPath = new PathString("/signin-line");
             AuthenticationMode = AuthenticationMode.Passive;
-            Scope = new List<string>
-            {
-                "basic"
-            };
+            Scope = new List<string>();
             BackchannelTimeout = TimeSpan.FromSeconds(60);
+            CookieManager = new CookieManager();
         }
     }
 }
