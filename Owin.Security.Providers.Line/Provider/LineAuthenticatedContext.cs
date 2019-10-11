@@ -2,17 +2,19 @@ using System.Security.Claims;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
+using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.Providers.Line.Provider
 {
-    public class LineAuthenticatedContext
+    public class LineAuthenticatedContext : BaseContext
     {
-        public LineAuthenticatedContext(IOwinContext context, JObject user, string accessToken)
+        public LineAuthenticatedContext(IOwinContext context, JObject user, string accessToken) 
+            : base(context)
         {
             User = user;
             AccessToken = accessToken;
 
-            MId = TryGetValue(user, "mid");
+            userId = TryGetValue(user, "userId");
             DisplayName = TryGetValue(user, "displayName");
             ProfilePicture = TryGetValue(user, "pictureUrl");
             StatusMessage = TryGetValue(user, "statusMessage");
@@ -35,7 +37,7 @@ namespace Owin.Security.Providers.Line.Provider
         /// <summary>
         /// Gets the Line user ID
         /// </summary>
-        public string MId { get; private set; }
+        public string userId { get; private set; }
 
         /// <summary>
         /// Gets the display name

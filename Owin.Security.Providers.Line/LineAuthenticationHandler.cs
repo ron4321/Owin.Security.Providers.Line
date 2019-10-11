@@ -11,14 +11,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Owin.Security.Providers.Line.Provider;
 using System.Net.Http.Headers;
+using Microsoft.Owin;
 
 namespace Owin.Security.Providers.Line
 {
     public class LineAuthenticationHandler : AuthenticationHandler<LineAuthenticationOptions>
     {
         private const string XmlSchemaString = "http://www.w3.org/2001/XMLSchema#string";
-        private const string TokenEndpoint = "https://api.line.me/v1/oauth/accessToken";
-        private const string ProfileEndpoint = "https://api.line.me/v1/profile";
+        private const string TokenEndpoint = "https://api.line.me/oauth2/v2.1/token";
+        private const string ProfileEndpoint = "https://api.line.me/v2/profile";
 
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
@@ -57,7 +58,7 @@ namespace Owin.Security.Providers.Line
                 }
 
                 // OAuth2 10.12 CSRF
-                if (!ValidateCorrelationId(properties, _logger))
+                if (!ValidateCorrelationId(Options.CookieManager, properties, _logger))
                 {
                     return new AuthenticationTicket(null, properties);
                 }
@@ -104,9 +105,9 @@ namespace Owin.Security.Providers.Line
                 };
 
 
-                if (!string.IsNullOrEmpty(context.MId))
+                if (!string.IsNullOrEmpty(context.userId))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.MId, XmlSchemaString, Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.userId, XmlSchemaString, Options.AuthenticationType));
                 }
                 if (!string.IsNullOrEmpty(context.DisplayName))
                 {
@@ -170,22 +171,27 @@ namespace Owin.Security.Providers.Line
             }
 
             // OAuth2 10.12 CSRF
-            GenerateCorrelationId(properties);
+            GenerateCorrelationId(Options.CookieManager, properties);
 
             // plus separated (do not URL encode)
-            var scope = string.Join("+", Options.Scope);
+            var scope = string.Join(" ", Options.Scope);
+            if (string.IsNullOrEmpty(scope))
+            {
+                scope = "openid profile";
+            }
 
             var state = Options.StateDataFormat.Protect(properties);
 
             var authorizationEndpoint =
-                "https://access.line.me/dialog/oauth/weblogin/" +
+                "https://access.line.me/oauth2/v2.1/authorize" +
                 "?response_type=code" +
                 "&client_id=" + Uri.EscapeDataString(Options.ChannelId) +
                 "&redirect_uri=" + Uri.EscapeDataString(redirectUri) +
                 // Note: Do not use a URL encoded string for the state parameter because it is URL decoded when redirected from the LINE platform. 
                 // This is a known issue and we are working to fix it so that the state parameter is passed to the redirect URL unchanged as specified by the OAuth 2.0 protocol.
                 // https://developers.line.me/web-login/integrating-web-login
-                "&state=" + state; 
+                "&state=" + state +
+                "&scope=" + scope; 
 
             Response.Redirect(authorizationEndpoint);
 
